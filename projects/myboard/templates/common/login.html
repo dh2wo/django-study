@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="kor">
+<html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -9,8 +9,12 @@
 <body>
     <h1>로그인</h1>
     <!-- POST로 보낼때는 주소뒤에 / 붙히기!!! -->
-    <form action="../login/" method="POST">
+    <form action="{% url 'common:login' %}" method="POST">
         {% csrf_token %}
+        <!-- 로그인 성공 후 이동할 URL -->
+        <!-- hidden 태그 next의 value로 {{ next }}를 사용하면 주소의 쿼리스트링에 있던 ?next=주소로 이동
+             vlaue로 특정 문자열을 사용하면 해당하는 특정 주소로 이동-->
+        <input type = "hidden" name = "next" value = "/board/">
         <table>
             <tr>
                 <th>아이디</th>

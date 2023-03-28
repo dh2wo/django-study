@@ -1,6 +1,9 @@
 from django.urls import path
 from . import views
 
+# 다른 앱에서 같은 URL별칭 중복 예방, 네임스페이스
+app_name = 'board'
+
 urlpatterns = [
     # .../board
     path('', views.index, name = 'index'),

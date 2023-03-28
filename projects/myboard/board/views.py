@@ -2,6 +2,7 @@ from django.shortcuts import render
 from .models import Board
 from django.http import HttpResponseRedirect
 from django.core.paginator import Paginator
+from django.contrib.auth.decorators import login_required
 
 # Create your views here.
 
@@ -82,6 +83,8 @@ def read(request, id):
     return render(request, 'board/read.html', context)
 
 # 글 쓰기
+# 내가 따로 만든 로그인 URL이 있다면 login_url 키워드 변수를 적어야한다
+@login_required(login_url='common:login')
 def write(request):
     if request.method == 'GET': # 요청방식이 GET이면 화면 표시
         return render(request, 'board/board_form.html')
@@ -89,14 +92,14 @@ def write(request):
         # 폼의 데이터를 DB에 저장
         title = request.POST['title']
         content = request.POST['content']
+        author = request.user # 요청에 들어있는 User 객체
 
         # 현재 세션정보의 writer라는 키를 가진 데이터 취득
-        session_writer =  request.session.get('writer')
-        if not session_writer: # 세션에 정보가 없는 경우
-            # 폼에서 가져온 writer 값 세션에 저장
-            request.session['writer'] = request.POST['writer']
-
-        print("session_writer : ", session_writer)
+        # session_writer =  request.session.get('writer')
+        # if not session_writer: # 세션에 정보가 없는 경우
+        #     # 폼에서 가져온 writer 값 세션에 저장
+        #     request.session['writer'] = request.POST['writer']
+        # print("session_writer : ", session_writer)
 
         # 방법1, 객체.save() 
         # board = Board(
@@ -109,39 +112,49 @@ def write(request):
         # 방법2, 모델.objects.create(값)   
         Board.objects.create(
         title = title,
-        writer = request.session.get('writer'), # 세션에 있는 값 저장 #?왜 session_write가 아니라
+        author = author, # user 객체 저장
+        # writer = request.session.get('writer'), # 세션에 있는 값 저장
         content = content
         )
 
         return HttpResponseRedirect('/board/')
     
 # 글 수정
+@login_required(login_url='common:login')
 def update(request, id):
     board = Board.objects.get(id = id)
+    
+    # 로그인 정보가 맞지 않을 때
+    if board.author.username != request.user.username:
+        return HttpResponseRedirect('/board/')
     
     if request.method == 'GET':
         context = {'board' : board }
         return render(request , 'board/board_update.html', context)
     else:
         board.title = request.POST['title']
-        board.writer = request.POST['writer']
+        # board.writer = request.POST['writer']
         board.content = request.POST['content']
         board.save() # save를 해야 DB에 반영됨!!!
 
         # 수정 후에 해당 글로 다시 이동
         redirect_url  = '/board/' + str(id) + '/'
         return HttpResponseRedirect(redirect_url)
-
+        
 # 글 삭제
-def delete(requset, id):
+@login_required(login_url='common:login')
+def delete(request, id):
     print("id : ", id)
-    # 해당 객체를 가져와서 삭제
-    Board.objects.get(id = id).delete()
-    
+    # 해당 객체를 가져오기
+    board = Board.objects.get(id = id)
+
+    # 글 작성자의 id와 접속한 사람의 id가 같을때
+    if board.author.username == request.user.username:
+        board.delete()
+    # 다를때
     return HttpResponseRedirect('/board/')
 
 
 
-    
 
 

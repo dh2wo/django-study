@@ -1,10 +1,6 @@
 {# common/base.html을 상속 받겠음 #}
 {% extends 'common/base.html' %}
   {% block title %}[게시판]{% endblock title %}
-  
-  {% load static %}
-  <link rel="stylesheet" type="text/css" href="{% static 'static/style.css' %}">
-
     {% block body %}
     <h1>게시판</h1>
     <!-- board_list 있을 때 -->
@@ -81,7 +77,11 @@
     <!-- 페이징2 : 가지고 있는 페이지의 번호 다 보여주기 -->
     페이징 2 : 
     {% for page_number in page_obj.paginator.page_range %}
-      <a href="?page={{ page_number }}">{{ page_number }}</a> &nbsp;
+      {% if page_number == page_obj.number %}
+        <a href="?page={{ page_number }}" class="current">{{ page_number }}</a> &nbsp;
+      {% else %}
+        <a href="?page={{ page_number }}">{{ page_number }}</a> &nbsp;
+      {% endif %}
     {% endfor %}
     <br>
 

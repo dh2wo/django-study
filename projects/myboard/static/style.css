@@ -1,4 +1,4 @@
-table,
+/* table,
 tr,
 th,
 td {
@@ -14,13 +14,40 @@ a {
 a:hover {
   color: lime;
 
-}
+} */
 
 .current{
   color: red;
   font-size: large;
   font-weight: bold;
-} 
+}
 
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid black;
+  padding: 5px;
+}
+
+th {
+  background-color: #efefef;
+}
+
+a {
+  color: blue;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+.current {
+  font-weight: bold;
+  color: red;
+}
 
 

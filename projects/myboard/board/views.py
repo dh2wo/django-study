@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import Board
+from .models import Board, Reply
 from django.http import HttpResponseRedirect
 from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
@@ -19,7 +19,7 @@ def index(request):
     # board_list = Board.objects.all().order_by('-id')
 
     result = None # 필터링된 리스트
-    
+
     context = { }
 
     # request.GET : GET 방식으로 보낸 데이터들을 딕셔너리 타입으로 저장
@@ -44,7 +44,7 @@ def index(request):
         # 검색을 했을때만 검색 기준과 키워드를 context에 넣는다
         context['searchType'] = search_Type
         context['searchWord'] = search_Word
-        
+
     else: # QueryDict에 검색 조건과 키워드가 없을 때
         result = Board.objects.all()
 
@@ -63,7 +63,7 @@ def index(request):
 
     # 페이징한 일부 목록을 반환
     context['page_obj'] = page_obj
-    
+
     return render(request, 'board/index.html', context)
 
 # 글 읽기
@@ -71,13 +71,16 @@ def read(request, id):
     print("id : ", id)
 
     board = Board.objects.get(id = id)
+    # 고전적인 방법으로 댓글 가져오기
+    # reply_list = Reply.objects.filter(board_obj = id).order_by('-id')
 
     # 조회수 올리기
     board.view_count += 1
     board.save()
 
     context = {
-        'board' : board
+        'board' : board,
+        # 'replyList' : reply_list
     }
 
     return render(request, 'board/read.html', context)
@@ -101,15 +104,15 @@ def write(request):
         #     request.session['writer'] = request.POST['writer']
         # print("session_writer : ", session_writer)
 
-        # 방법1, 객체.save() 
+        # 방법1, 객체.save()
         # board = Board(
         #     title = title,
         #     writer = writer,
-        #     content = content 
+        #     content = content
         # )
         # board.save() # db에 insert
-            
-        # 방법2, 모델.objects.create(값)   
+
+        # 방법2, 모델.objects.create(값)
         Board.objects.create(
         title = title,
         author = author, # user 객체 저장
@@ -118,16 +121,16 @@ def write(request):
         )
 
         return HttpResponseRedirect('/board/')
-    
+
 # 글 수정
 @login_required(login_url='common:login')
 def update(request, id):
     board = Board.objects.get(id = id)
-    
+
     # 로그인 정보가 맞지 않을 때
     if board.author.username != request.user.username:
         return HttpResponseRedirect('/board/')
-    
+
     if request.method == 'GET':
         context = {'board' : board }
         return render(request , 'board/board_update.html', context)
@@ -140,7 +143,7 @@ def update(request, id):
         # 수정 후에 해당 글로 다시 이동
         redirect_url  = '/board/' + str(id) + '/'
         return HttpResponseRedirect(redirect_url)
-        
+
 # 글 삭제
 @login_required(login_url='common:login')
 def delete(request, id):
@@ -154,7 +157,17 @@ def delete(request, id):
     # 다를때
     return HttpResponseRedirect('/board/')
 
+# 댓글 쓰기
+def write_reply(request, id):
+    print(request.POST)
 
+    user = request.user
+    reply_text = request.POST['replyText'] # html의 [name]
 
+    Reply.objects.create(
+        user = user,
+        reply_content = reply_text,
+        board_obj = Board.objects.get(id = id)
+    )
 
-
+    return HttpResponseRedirect('/board/' + str(id))

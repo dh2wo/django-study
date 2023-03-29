@@ -30,9 +30,30 @@
     <!-- username끼리 비교하려면 아래처럼 -->
     {% comment %} {% if board.author == user %} board.author는 user하고 비교한다 {% endcomment %}
     {% if board.author.username == user.username %}
-      <a href="{% url 'board:update' board.id %}">수정</a>&nbsp; 
+      <a href="{% url 'board:update' board.id %}">수정</a>&nbsp;
       <a href="{% url 'board:delete' board.id %}" onclick="return confirm('정말 삭제하시겠습니까?')">삭제</a>&nbsp;
     {% endif %}
+    <div id = 'relpyArea'>
+      <!-- 댓글 목록 표시할 곳-->
+      <div id = 'replyList'>
+        <!-- board 객체 뿐만 아니라 board와 FK로 엮인 객체는 borad.모델이름_set으로 가져올 수 있다 -->
+        {% if board.reply_set %}
+          {% for reply in board.reply_set.all %}
+            {{ reply }}<br>
+          {% endfor %}
+        {% else %}
+          <p>등록된 댓글이 없습니다.</p>
+        {% endif %}
+      </div>
+      <!-- 댓글 입력 폼-->
+      <div id = 'replyForm'>
+        <form action = "{% url 'board:write_reply' board.id %}" method = 'POST'>
+        {% csrf_token %}
+          <textarea name = 'replyText'></textarea>
+          <input type = 'submit' value = '댓글쓰기'>
+        </form>
+      </div>
+    </div>
     <br />
     <a href="{% url 'board:index' %}">목록으로</a>
   {% endblock body %}

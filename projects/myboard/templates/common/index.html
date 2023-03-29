@@ -20,7 +20,7 @@
     <h1>안녕하세요~</h1>
     <!-- django에서 제공하는 User 모델 -->
     <h2>
-        Hello, 
+        Hello,
         {% if user.is_authenticated %} <!-- user 정보가 있으면 username 표시 -->
             {{ user.username }}!
         {% else %} <!-- 없으면 GUEST 표시 -->

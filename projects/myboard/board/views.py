@@ -1,8 +1,12 @@
 from django.shortcuts import render
-from .models import Board, Reply
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.core.paginator import Paginator
+from django.core import serializers
 from django.contrib.auth.decorators import login_required
+
+from json import loads # 문자열화한 JSON객체 받을수 있다?
+
+from .models import Board, Reply
 
 # Create your views here.
 
@@ -181,7 +185,7 @@ def write_reply(request, id):
     return HttpResponseRedirect('/board/' + str(id))
 
 # 댓글 삭제
-def delete_reply(requset, id, rid):
+def delete_reply(request, id, rid):
     print(f'id(글번호) : {id}, rid(댓글번호) : {rid}')
 
     Board.objects.get(id = id).reply_set.get(id = rid).delete()
@@ -210,3 +214,33 @@ def update_reply(request, id):
         reply.save()
 
         return HttpResponseRedirect('/board/' + str(id))
+
+# AJAX
+def call_ajax(request):
+    print('ajax 성공이다')
+    print(request.POST)
+    # JSON.stringify 하면 아래 표현은 사용할 수 없음
+    # print(request.POST['txt'])
+    data = loads(request.body)
+    print('템플릿에서 보낸 데이터', data)
+    print(data['txt']) # JSON.stringify로 이렇게 가능
+    print(type(data))
+
+    return JsonResponse({'result' : 'ㅊㅋㅊㅋ'})
+
+# AJAX 댓글 목록
+def load_reply(request):
+    id = request.POST['id']
+    # 해당하는 board id에 달려있는 모든 Reply 가져오기
+    # 1번 방법
+    #Reply.objects.filter(board = id)
+
+    # 2번 방법
+    reply_list = Board.objects.get(id = id).reply_set.all()
+
+    # QuerySet 그 자체는 JS에서는 알 수 없는 타입..
+    # 그래서 JSON 타입으로 형변환
+    serializers_list = serializers.serialize("json", reply_list)
+
+    response = {'response' : serializers_list}
+    return JsonResponse(response)

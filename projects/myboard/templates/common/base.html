@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="ko">
-
   <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -9,11 +8,14 @@
     <title>
       {% block title %}{% endblock title %}
     </title>
+
     <!-- 스타일 import -->
     {% load static %}
     <link rel="stylesheet" href="{% static 'style.css' %}">
-  </head>
 
+    <!-- jquery cdn방식으로 가져옴 -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+  </head>
   <body>
     <!-- 내가 집어넣고싶은 조각(fragment)을 include -->
     {% include 'common/menubar.html' %}

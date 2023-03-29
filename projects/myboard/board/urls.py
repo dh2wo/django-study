@@ -21,4 +21,9 @@ urlpatterns = [
     path('<int:id>/delete_reply/<int:rid>', views.delete_reply, name = 'delete_reply'),
     # 댓글 수정
     path('<int:id>/update_reply/', views.update_reply, name = 'update_reply'),
+
+    # AJAX
+    path('callAjax/', views.call_ajax),
+    # AJAX 댓글 목록
+    path('load_reply/', views.load_reply),
 ]

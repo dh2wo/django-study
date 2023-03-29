@@ -7,6 +7,28 @@
       // ../board/글번호/update_reply?rid=댓글번호
       location.href = 'update_reply?rid=' + param;
     }
+
+    $(document).ready(function(){
+      loadReplyList();
+    });
+
+    function loadReplyList(){
+      let bNum = '{{ board.id }}';
+      console.log(bNum);
+      $.ajax({
+        url: '/board/load_reply/',
+        type: 'POST',
+        headers: {'X-CSRFTOKEN' : '{{ csrf_token }}'},
+        data: {'id' : bNum},
+        success: function(response){
+          console.log(response)
+          $.each(response, function(i, item) {
+            console.log(i + " " + item);
+          });
+        }
+      });
+    }
+
   </script>
     <br>
     <h1>#{{ board.id }}</h1>

@@ -3,6 +3,7 @@
   {% block body %}
   <script>
     function showUpdateForm(param){
+      // alert('댓글번호 : '+ param)
       // ../board/글번호/update_reply?rid=댓글번호
       location.href = 'update_reply?rid=' + param;
     }
@@ -56,12 +57,21 @@
         {% endif %}
       </div>
       <!-- 댓글 입력 폼-->
-      <div id = 'replyForm'>
+      <div id = 'replyForm'> <!-- context에 update에 대한 값을 찾지 못했을 때 -->
+      {% if not update %}
         <form action = "{% url 'board:write_reply' board.id %}" method = 'POST'>
         {% csrf_token %}
           <textarea name = 'replyText'></textarea>
           <input type = 'submit' value = '댓글쓰기'>
         </form>
+      {% else %} <!-- context에 update가 있을때-->
+        <form action = "{% url 'board:update_reply' board.id %}" method = 'POST'>
+        {% csrf_token %}
+          <input type = 'hidden' name = 'rid' value = {{ reply.id }}>
+          <textarea name = 'replyText'>{{ reply.reply_content }}</textarea>
+          <input type = 'submit' value = '댓글수정'>
+        </form>
+      {% endif %}
       </div>
     </div>
     <br />

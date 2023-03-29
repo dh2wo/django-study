@@ -164,10 +164,34 @@ def write_reply(request, id):
     user = request.user
     reply_text = request.POST['replyText'] # html의 [name]
 
-    Reply.objects.create(
-        user = user,
+    # 댓글(1)
+    # Reply.objects.create(
+    #     user = user,
+    #     reply_content = reply_text,
+    #     board_obj = Board.objects.get(id = id)
+    # )
+
+    # 댓글(2) : queryset 이용
+    board = Board.objects.get(id = id)
+    board.reply_set.create(
         reply_content = reply_text,
-        board_obj = Board.objects.get(id = id)
+        user = user
     )
 
     return HttpResponseRedirect('/board/' + str(id))
+
+# 댓글 삭제
+def delete_reply(requset, id, rid):
+    print(f'id(글번호) : {id}, rid(댓글번호) : {rid}')
+
+    Board.objects.get(id = id).reply_set.get(id = rid).delete()
+    # Reply.objects.get(id = rid).delete()
+
+    return HttpResponseRedirect('/board/' + str(id))
+
+# 댓글 수정
+def update_reply(request, id):
+    rid = request.GET['rid']
+    print(id, rid)
+
+    pass

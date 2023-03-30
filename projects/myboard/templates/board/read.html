@@ -2,11 +2,61 @@
   {% block title %}[글 보기]{% endblock title %}
   {% block body %}
   <script>
-    function showUpdateForm(param){
+    // 댓글 달기
+    function writeReply(bNUm){
+      let bNum = '{{board.id}}'
+
+    }
+
+    // 댓글 수정
+    function updateReply(rNum){
       // alert('댓글번호 : '+ param)
       // ../board/글번호/update_reply?rid=댓글번호
-      location.href = 'update_reply?rid=' + param;
+      // location.href = 'update_reply?rid=' + param;
+      let bNum = '{{board.id}}'
+      $.ajax({
+        url: '/board/{{board.id}}/update_reply/',
+        type: 'POST',
+        headers: {'X-CSRFTOKEN' : '{{ csrf_token }}'},
+        data: {'id' : bNum, 'rid' : rNum},
+        success: function(response) {
+          loadReplyList();
+        }
+      })
     }
+    // 댓글수정(get?)
+    function updateReply(rNum){
+      // alert('댓글번호 : '+ param)
+      // ../board/글번호/update_reply?rid=댓글번호
+      // location.href = 'update_reply?rid=' + param;
+      let bNum = '{{board.id}}'
+      $.ajax({
+        url: '/board/{{board.id}}/update_reply/',
+        type: 'GET',
+        headers: {'X-CSRFTOKEN' : '{{ csrf_token }}'},
+        data: {'id' : bNum, 'rid' : rNum},
+        success: function(response) {
+          loadReplyList();
+        }
+      })
+    }
+
+    // 댓글 삭제
+    function deleteReply(rNum){
+      // location.href='../{{board.id}}/delete_reply/' + data;
+      // '<int:id>/delete_reply/<int:rid>/'
+       let bNum = '{{board.id}}'
+
+      $.ajax({
+        url: '/board/delete_reply/',
+        type: 'POST',
+        headers: {'X-CSRFTOKEN':'{{csrf_token}}'},
+        data: {'id': bNum, 'rid': rNum},
+        success: function(response) {
+          loadReplyList();
+        }
+      });
+     }
 
     $(document).ready(function(){
       loadReplyList();
@@ -21,14 +71,29 @@
         headers: {'X-CSRFTOKEN' : '{{ csrf_token }}'},
         data: {'id' : bNum},
         success: function(response){
-          console.log(response)
-          $.each(response, function(i, item) {
-            console.log(i + " " + item);
+          console.log(JSON.parse(response["response"]));
+          let replyList = JSON.parse(response["response"]);
+          let str = "";
+
+          $.each(replyList, function(i, item) {
+            console.log(i + " " + item.fields.reply_content);
+            let replyContent = item.fields.reply_content;
+            let replyUser = item.fields.user;
+            console.log('replyId: '+ item.pk)
+            // 바로바로 화면에 붙이려면 append
+            // $("#replyList").append(replyContent + "<br>")
+
+            str += replyContent + "&nbsp&nbsp";
+            str += replyUser + "&nbsp&nbsp";
+            str += "<a href = '' onclick='javascript:updateReply(\"" + item.pk + "\")'>수정/</a>";
+            str += "<a href = '' onclick='javascript:deleteReply(\"" + item.pk + "\")'>삭제</a>";
+            str += "<br>";
           });
+          // HTML을 만들어서 한번에 넣으려면 html
+          $("#replyList").html(str)
         }
       });
     }
-
   </script>
     <br>
     <h1>#{{ board.id }}</h1>
@@ -67,7 +132,7 @@
       <!-- 댓글 목록 표시할 곳-->
       <div id = 'replyList'>
         <!-- board 객체 뿐만 아니라 board와 FK로 엮인 객체는 borad.모델이름_set으로 가져올 수 있다 -->
-        {% if board.reply_set %}
+        {% comment %} {% if board.reply_set %}
           {% for reply in board.reply_set.all %}
             {{ reply }} &nbsp;&nbsp;&nbsp;
             <a href = "#" onclick = "javescript:showUpdateForm('{{reply.id}}')">수정</a>/
@@ -76,11 +141,12 @@
           {% endfor %}
         {% else %}
           <p>등록된 댓글이 없습니다.</p>
-        {% endif %}
+        {% endif %} {% endcomment %}
       </div>
       <!-- 댓글 입력 폼-->
       <div id = 'replyForm'> <!-- context에 update에 대한 값을 찾지 못했을 때 -->
       {% if not update %}
+        <!-- <form action = "{% url 'board:write_reply' board.id %}" method = 'POST'> -->
         <form action = "{% url 'board:write_reply' board.id %}" method = 'POST'>
         {% csrf_token %}
           <textarea name = 'replyText'></textarea>

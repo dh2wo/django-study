@@ -16,7 +16,7 @@ def home(request):
 
 # 게시판 목록 보기
 def index(request):
-    print('indext() 실행')
+    print('index() 실행')
 
     # 반환되는 queryset에 대해서 order_by함수 이용하면 특정 필드 기준으로 정렬
     # order_by에 들어가는 필드 이름 앞에 -를 붙히면 내림차순(DESC) 아니면 오름차순(ASC)
@@ -183,22 +183,26 @@ def write_reply(request, id):
     )
 
     return HttpResponseRedirect('/board/' + str(id))
+    #return JsonResponse({"result":reply_text}) # ajax response로 보내진다
 
 # 댓글 삭제
-def delete_reply(request, id, rid):
+def delete_reply(request):
+    id = request.POST['id']
+    rid = request.POST['rid']
     print(f'id(글번호) : {id}, rid(댓글번호) : {rid}')
 
     Board.objects.get(id = id).reply_set.get(id = rid).delete()
-                # Reply.objects.get(id = rid).delete()
+    # Reply.objects.get(id = rid).delete() 윗줄 같은 느낌
 
-    return HttpResponseRedirect('/board/' + str(id))
+    return JsonResponse({"result":"이현종"}) # 아무튼 딕셔너리로 보내야 오류가 안뜬다
 
 # 댓글 수정
-def update_reply(request, id):
+def update_reply(request):
+    print('댓글수정ㅇㅇ')
     if request.method == 'GET':
-        rid = request.GET['rid']
         board = Board.objects.get(id = id)
-
+        rid = request.GET['rid']
+        print('알아이디',rid)
         context = {
             'update' : 'update',
             'board' : board, # id에 해당하는 Board 객체
@@ -213,7 +217,7 @@ def update_reply(request, id):
         reply.reply_content = request.POST['replyText']
         reply.save()
 
-        return HttpResponseRedirect('/board/' + str(id))
+        return JsonResponse({"result":"이현종"})
 
 # AJAX
 def call_ajax(request):

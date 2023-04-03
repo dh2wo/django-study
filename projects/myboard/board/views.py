@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from django.http import HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse, FileResponse
 from django.core.paginator import Paginator
 from django.core import serializers
 from django.contrib.auth.decorators import login_required
@@ -72,7 +72,7 @@ def index(request):
 
 # 글 읽기
 def read(request, id):
-    print("id : ", id)
+    # print("id : ", id)
 
     board = Board.objects.get(id = id)
     # 고전적인 방법으로 댓글 가져오기
@@ -109,22 +109,32 @@ def write(request):
         # print("session_writer : ", session_writer)
 
         # 방법1, 객체.save()
-        # board = Board(
-        #     title = title,
-        #     writer = writer,
-        #     content = content
-        # )
-        # board.save() # db에 insert
-
-        # 방법2, 모델.objects.create(값)
-        Board.objects.create(
-        title = title,
-        author = author, # user 객체 저장
-        # writer = request.session.get('writer'), # 세션에 있는 값 저장
-        content = content
+        board = Board(
+            title = title,
+            author = author,
+            content = content
         )
 
-        return HttpResponseRedirect('/board/')
+        # get메서드 사용하는 이유
+        # 딕셔너리에서 존재하지 않는 키를 딕셔너리[키] -> KeyError
+        # 딕셔너리.get('키') - > None
+        if request.FILES.get('uploadFile'): # 파일 키가 있다면
+            upload_file = request.FILES['uploadFile']
+            # 요청에 들어있던 첨부파일을 모델에 설정
+            board.attached_file = upload_file
+            board.original_file_name = upload_file.name
+
+    board.save() # db에 insert
+
+        # 방법2, 모델.objects.create(값)
+        # Board.objects.create(
+        # title = title,
+        # author = author, # user 객체 저장
+        # # writer = request.session.get('writer'), # 세션에 있는 값 저장
+        # content = content
+        # )
+
+    return HttpResponseRedirect('/board/')
 
 # 글 수정
 @login_required(login_url='common:login')
@@ -142,6 +152,17 @@ def update(request, id):
         board.title = request.POST['title']
         # board.writer = request.POST['writer']
         board.content = request.POST['content']
+
+        # 첨부파일이 있다면
+        if request.FILES.get('uploadFile'):
+            upload_file = request.FILES['uploadFile']
+            # 요청에 들어있던 첨부파일을 모델에 설정
+            board.attached_file = upload_file
+            board.original_file_name = upload_file.name
+        else: # 첨부파일이 없다면
+            board.attached_file = None
+            board.original_file_name = None
+
         board.save() # save를 해야 DB에 반영됨!!!
 
         # 수정 후에 해당 글로 다시 이동
@@ -163,10 +184,15 @@ def delete(request, id):
 
 # 댓글 쓰기
 def write_reply(request, id):
-    print(request.POST)
+    print('POST', request.POST)
 
     user = request.user
-    reply_text = request.POST['replyText'] # html의 [name]
+    # reply_text = request.POST['replyText'] # html의 [name]
+    reply = loads(request.body) # 요청의 body를 해석
+    print(reply) # {'replyText': '댓글내용'}
+
+    reply_text = reply['replyText']
+    print('reply_text', reply_text) # 댓글내용
 
     # 댓글(1)
     # Reply.objects.create(
@@ -182,14 +208,15 @@ def write_reply(request, id):
         user = user
     )
 
-    return HttpResponseRedirect('/board/' + str(id))
-    #return JsonResponse({"result":reply_text}) # ajax response로 보내진다
+    # return JsonResponse({"result":reply_text}) # ajax response로 보내진다
+    # return HttpResponseRedirect('/board/' + str(id))
+    return JsonResponse({'result' : 'success' })
 
 # 댓글 삭제
-def delete_reply(request):
-    id = request.POST['id']
-    rid = request.POST['rid']
-    print(f'id(글번호) : {id}, rid(댓글번호) : {rid}')
+def delete_reply(request, id):
+    # id = request.POST['id']
+    # rid = request.POST['rid']
+    rid = (loads(request.body))['rid']
 
     Board.objects.get(id = id).reply_set.get(id = rid).delete()
     # Reply.objects.get(id = rid).delete() 윗줄 같은 느낌
@@ -197,24 +224,41 @@ def delete_reply(request):
     return JsonResponse({"result":"이현종"}) # 아무튼 딕셔너리로 보내야 오류가 안뜬다
 
 # 댓글 수정
-def update_reply(request):
-    print('댓글수정ㅇㅇ')
+def update_reply(request, id):
     if request.method == 'GET':
-        board = Board.objects.get(id = id)
+        # board = Board.objects.get(id = id)
         rid = request.GET['rid']
-        print('알아이디',rid)
+
+        # 댓글 번호에 해당하는 객체 가져오기
+        reply = Board.objects.get(id = id).reply_set.get(id = rid)
+
         context = {
-            'update' : 'update',
-            'board' : board, # id에 해당하는 Board 객체
-            'reply' : board.reply_set.get(id = rid) # rid에 해당하는 Reply 객체
+            # rid에 해당하는 Reply객체의 id, replyText
+            'rid' : reply.id,
+            'replyText' : reply.reply_content
+            # 'update' : 'update',
+            # 'board' : board, # id에 해당하는 Board 객체
+            # 'reply' : board.reply_set.get(id = rid) # rid에 해당하는 Reply 객체
         }
-        return render(request, 'board/read.html', context)
+        # return render(request, 'board/read.html', context)
+        return JsonResponse(context)
     else:
-        rid = request.POST['rid']
+        # id = request.POST['id']
+        # rid = request.POST['rid']
+
+        # JSON으로 받기
+        request_body = loads(request.body)
+        print('request_body : ', request_body)
+        rid = request_body['rid']
+        reply_text = request_body['replyText']
+        print(rid, reply_text)
+
         reply = Board.objects.get(id = id).reply_set.get(id = rid)
 
         # 폼에 들어있던 새로운 댓글 텍스트로 갱신
-        reply.reply_content = request.POST['replyText']
+        # reply.reply_content = request.POST['replyText']
+        reply.reply_content = reply_text
+
         reply.save()
 
         return JsonResponse({"result":"이현종"})
@@ -233,18 +277,55 @@ def call_ajax(request):
     return JsonResponse({'result' : 'ㅊㅋㅊㅋ'})
 
 # AJAX 댓글 목록
-def load_reply(request):
-    id = request.POST['id']
-    # 해당하는 board id에 달려있는 모든 Reply 가져오기
-    # 1번 방법
-    #Reply.objects.filter(board = id)
+# def load_reply(request):
+#     id = request.POST['id']
+#     # 해당하는 board id에 달려있는 모든 Reply 가져오기
+#     # 1번 방법
+#     #Reply.objects.filter(board = id)
 
-    # 2번 방법
+#     # 2번 방법
+#     reply_list = Board.objects.get(id = id).reply_set.all()
+#     # print(reply_list) QuerySet 뭉탱이
+
+#     # QuerySet 그 자체는 JS에서는 알 수 없는 타입..
+#     # 그래서 JSON 타입으로 형변환
+#     serializers_list = serializers.serialize("json", reply_list)
+#     # print(serializers_list)
+
+#     response = {'response' : serializers_list}
+#     return JsonResponse(response)
+
+# AJAX 댓글 목록2
+def load_reply(request, id):
+
     reply_list = Board.objects.get(id = id).reply_set.all()
 
-    # QuerySet 그 자체는 JS에서는 알 수 없는 타입..
-    # 그래서 JSON 타입으로 형변환
-    serializers_list = serializers.serialize("json", reply_list)
+    reply_dict_list = []
 
-    response = {'response' : serializers_list}
-    return JsonResponse(response)
+    # reply_list의 정보를 가지고 dictionary 만들기
+    for reply in reply_list:
+        reply_dict = {
+            'id' : reply.id,
+            'username' : reply.user.username,
+            'replyText' : reply.reply_content,
+            'inputDate' : reply.input_date
+        }
+
+        reply_dict_list.append(reply_dict)
+
+    context = {'replyList' : reply_dict_list }
+
+    return JsonResponse(context)
+
+
+# 파일 다운로드
+def download(request, id):
+    board = Board.objects.get(id = id)
+    attached_file = board.attached_file
+    original_file_name = board.original_file_name
+
+    # 글 번호에 달려있던 첨부파일로 파일형식 응답 객체 생성
+    response = FileResponse(attached_file)
+    response['Content-Disposition'] = 'attachment; filename = %s' %original_file_name
+
+    return response

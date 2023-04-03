@@ -36,7 +36,7 @@ def signup(request):
     else:
         # GET 방식으로 요청이 오면 비어있는 사용자 생성 폼을 만든다
         form = UserCreationForm()
-    return render(request, 'common/singup.html', {'form' : form})
+    return render(request, 'common/signup.html', {'form' : form})
 
 def signup_custom(request):
     if request.method == "POST":
@@ -62,15 +62,15 @@ def signup_custom(request):
     else: # 요청이 GET일때
         form = UserForm() # 새 폼 만들어주기
 
-        return render(request, 'common/singup.html', {'form' : form})
-    
+        return render(request, 'common/signup.html', {'form' : form})
+
 def delete(request):
     if request.user.is_authenticated:
         request.user.delete() # user 정보 삭제
 
         # render나 redirect의 파라미터롤 app_name : url_name 작성 가능
         return redirect('common:index')
-    
+
 def update(request):
     if request.method == 'POST':
         form = CustomChangeForm(request.POST, instance = request.user)

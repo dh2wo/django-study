@@ -44,6 +44,10 @@
             <!-- 파라미터가 있는 주소를 호춯할 때 -->
             <!-- name 뒤에 한 칸 띄우고 파라미터의 값 지정 -->
             <a href="{% url 'board:detail' board.id %}">{{ board.title }}</a>
+            <span id = 'replyCnt' style = 'font-size: 0.8em; color: blue;'>[{{ board.reply_set.all.count }}]</span>&nbsp;
+            {% if board.original_file_name %}
+            <image src = '/static/download.png'></image>
+            {% endif %}
           </td>
           <td>{{ board.author }}
             {{ board.author_id }}

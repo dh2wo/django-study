@@ -1,68 +1,107 @@
-{% extends 'common/base.html' %}
-  {% block title %}[글 보기]{% endblock title %}
-  {% block body %}
-  <script>
-    // 댓글 달기
-    function writeReply(bNUm){
-      let bNum = '{{board.id}}'
-
-    }
-
-    // 댓글 수정
-    function updateReply(rNum){
-      // alert('댓글번호 : '+ param)
-      // ../board/글번호/update_reply?rid=댓글번호
-      // location.href = 'update_reply?rid=' + param;
-      let bNum = '{{board.id}}'
-      $.ajax({
-        url: '/board/{{board.id}}/update_reply/',
-        type: 'POST',
-        headers: {'X-CSRFTOKEN' : '{{ csrf_token }}'},
-        data: {'id' : bNum, 'rid' : rNum},
-        success: function(response) {
-          loadReplyList();
-        }
-      })
-    }
-    // 댓글수정(get?)
-    function updateReply(rNum){
-      // alert('댓글번호 : '+ param)
-      // ../board/글번호/update_reply?rid=댓글번호
-      // location.href = 'update_reply?rid=' + param;
-      let bNum = '{{board.id}}'
-      $.ajax({
-        url: '/board/{{board.id}}/update_reply/',
-        type: 'GET',
-        headers: {'X-CSRFTOKEN' : '{{ csrf_token }}'},
-        data: {'id' : bNum, 'rid' : rNum},
-        success: function(response) {
-          loadReplyList();
-        }
-      })
-    }
-
+{% extends 'common/base.html' %} {% block title %}[글 보기]{% endblock title %}
+{% block body %}
+<script>
     // 댓글 삭제
-    function deleteReply(rNum){
-      // location.href='../{{board.id}}/delete_reply/' + data;
-      // '<int:id>/delete_reply/<int:rid>/'
-       let bNum = '{{board.id}}'
+    function deleteReply(rid){
+       let data = {'rid' : rid}
+
+       if(confirm('정말 삭제하시겠습니까?')){
+         $.ajax({
+           url: '{% url "board:delete_reply" id=board.id %}',
+           type: 'POST',
+           headers: {'X-CSRFTOKEN':'{{csrf_token}}'},
+           data: JSON.stringify(data),
+           success: function() {
+             loadReplyList();
+           }
+         });
+       }
+     }
+
+     // 댓글 수정 GET
+     function showUpdateForm(rid){
+      $("#writeForm").hide();
+      $("#updateForm").show();
 
       $.ajax({
-        url: '/board/delete_reply/',
-        type: 'POST',
+        url : '{% url "board:update_reply" id=board.id %}',
+        type : 'GET',
+        data : {'rid' : rid},
+        success : function(res){
+          console.log(res)
+          // 폼요소.val() = 해당하는 폼 요소에 들어있는 값을 가져올 수 있다
+          // 폼요소.val(문자열) = 문자열을 해당 폼 요소에 지정할 수 있다
+          // 1. 수정 입력창에 댓글 내용 표시
+          $('#replyTextUpdate').val(res.replyText);
+          // 2. rid라는 id를 가진 hidden 태그에 값 설정
+          $('#rid').val(rid);
+        }
+      })
+     }
+    // 댓글 수정 POST
+     function updateReply(){
+      let replyText = $('#replyTextUpdate').val();
+      let rid = $('#rid').val();
+      let data = {'rid' : rid, 'replyText' : replyText};
+
+      $.ajax({
+        url : '{% url "board:update_reply" id=board.id %}',
+        type : 'POST',
         headers: {'X-CSRFTOKEN':'{{csrf_token}}'},
-        data: {'id': bNum, 'rid': rNum},
-        success: function(response) {
+        data : JSON.stringify(data),
+        success : function(){
+          $('#replyTextUpdate').val('');
+          $('#updateForm').hide();
+          $("#writeForm").show();
           loadReplyList();
         }
-      });
+      })
      }
 
     $(document).ready(function(){
+      // 1. 수정 폼 숨기기
+      $('#updateForm').hide();
+
+      // 2. 댓글쓰기 버튼에 이벤트 달기
+      $('#btnWrite').click(function(){
+        // alert('댓글쓰기 버튼');
+        writeReply();
+      })
+
+      // 3. 댓글수정 버튼에 이벤트 달기
+      $('#btnUpdate').click(function(){
+        // alert('댓글수정 버튼');
+        updateReply();
+      })
+
       loadReplyList();
     });
 
-    function loadReplyList(){
+    // 댓글 쓰기
+    function writeReply(){
+      // alert('여기는 writeReply');
+
+      // 1. textarea에 쓴 문자열 가져오기
+      let replyText = $('#replyTextWrite').val(); // .val() : replyTextWrite에 써진 문자열 가져오기
+
+      let data = {'replyText' : replyText }
+
+      $.ajax({
+        url : '{% url "board:write_reply" id=board.id %}',
+        type : 'POST',
+        headers: { 'X-CSRFTOKEN' : '{{csrf_token}}' },
+        data : JSON.stringify(data),
+        success : function(result){
+          // console.log(result)
+          // 댓글창 초기화
+          $('#replyTextWrite').val("");
+          loadReplyList();
+        }
+    });
+  }
+
+    // 댓글 목록 가져오기
+    {% comment %} function loadReplyList(){
       let bNum = '{{ board.id }}';
       console.log(bNum);
       $.ajax({
@@ -71,7 +110,9 @@
         headers: {'X-CSRFTOKEN' : '{{ csrf_token }}'},
         data: {'id' : bNum},
         success: function(response){
-          console.log(JSON.parse(response["response"]));
+          console.log('1 : ', response)
+          console.log('2 : ', response['response'])
+          console.log('3 : ', JSON.parse(response["response"]));
           let replyList = JSON.parse(response["response"]);
           let str = "";
 
@@ -84,84 +125,135 @@
             // $("#replyList").append(replyContent + "<br>")
 
             str += replyContent + "&nbsp&nbsp";
-            str += replyUser + "&nbsp&nbsp";
-            str += "<a href = '' onclick='javascript:updateReply(\"" + item.pk + "\")'>수정/</a>";
-            str += "<a href = '' onclick='javascript:deleteReply(\"" + item.pk + "\")'>삭제</a>";
+            str += '[글쓴이 : ' + replyUser + "]&nbsp&nbsp";
+            {% if board.author.username == user.username %}
+            str += "<a href = '#' onclick='javascript:updateReply(\"" + item.pk + "\")'>수정/</a>";
+            str += "<a href = '#' onclick='javascript:deleteReply(\"" + item.pk + "\")'>삭제</a>";
+            {% endif %}
             str += "<br>";
           });
           // HTML을 만들어서 한번에 넣으려면 html
+          // Ajax를 사용하여 서버로부터 댓글 목록을 받아와서, replyList라는 변수에 저장한 후,
+          // 이를 반복문으로 돌며 각 댓글을 문자열로 만들어 #replyList라는 HTML 요소에 추가
           $("#replyList").html(str)
         }
       });
+    } {% endcomment %}
+
+    // 댓글 목록 가져오기2
+    function loadReplyList(){
+      $.ajax({
+        url: '{% url "board:load_reply" id=board.id %}',
+        type: 'GET',
+        success: function(res){
+            // console.log(res)
+            let str = "<table>";
+            $.each(res.replyList, function(index, item) { // replyList : context에 넣은 키
+              // inputDate에 있는 필요없는 문자열들을 삭제
+              let replacedDate = item.inputDate.replace("T", " ").replace("Z", " ").split(".")[0]
+              str += "<tr>";
+              str += "<td>" + item.replyText + "</td>";
+              str += "<td>" + item.username + "</td>";
+              str += "<td>" + replacedDate + "</td>"; // 2023-04-01T00:41:20.325 -> 2023-04-01 00:41:20
+              str += "<td>"
+              if('{{user.username }}' === item.username ){
+                str += "<a href = '#' onclick = 'showUpdateForm(" + item.id + ")'>수정</a>/";
+                str += "<a href = '#' onclick = 'deleteReply(" + item.id + ")'>삭제</a>";
+              }
+              str += "</td>";
+              str += "</tr>";
+            });
+            str += "</table>";
+
+            $("#replyList").html(str);
+        }
+      });
     }
-  </script>
-    <br>
-    <h1>#{{ board.id }}</h1>
-    <table border="1">
-      <tr>
-        <th>제목</th>
-        <td>{{ board.title }}</td>
-      </tr>
-      <tr>
-        <th>글쓴이</th>
-        <td>{{ board.author.username }}</td>
-      </tr>
-      <tr>
-        <th>내용</th>
-        <td>{{ board.content }}</td>
-      </tr>
-      <tr>
-        <th>조회수</th>
-        <td>{{ board.view_count }}</td>
-      </tr>
-      <tr>
-        <th>날짜</th>
-        <td>{{ board.input_date }}</td>
-      </tr>
-    </table>
+</script>
+<br />
+<h1>#{{ board.id }}</h1>
+<table border="1">
+  <tr>
+    <th>제목</th>
+    <td>{{ board.title }}</td>
+  </tr>
+  <tr>
+    <th>글쓴이</th>
+    <td>{{ board.author.username }}</td>
+  </tr>
+  <tr>
+    <th>내용</th>
+    <td>{{ board.content }}</td>
+  </tr>
+  <tr>
+    <th>조회수</th>
+    <td>{{ board.view_count }}</td>
+  </tr>
+  <tr>
+    <th>날짜</th>
+    <td>{{ board.input_date }}</td>
+  </tr>
+  {% if board.original_file_name %}
+  <tr>
+    <th>첨부파일</th>
+    <td>
+      <a href = '{% url 'board:download' id=board.id %}'>{{ board.original_file_name }}</a>
+    </td>
+  </tr>
+  {% endif %}
+</table>
+<br />
+<!-- 수정, 삭제 -->
+<!-- username끼리 비교하려면 아래처럼 -->
+{% comment %} {% if board.author == user %} board.author는 user하고 비교한다 {% endcomment %}
+{% if board.author.username == user.username %}
+<a href="{% url 'board:update' board.id %}">수정</a>&nbsp;
+<a href="{% url 'board:delete' board.id %}" onclick="return confirm('정말 삭제하시겠습니까?')">삭제</a>&nbsp;
+{% endif %}
+<hr />
+<div id="relpyArea">
+  <!-- 댓글 목록 표시할 곳-->
+  <div id="replyList">
+    <!-- board 객체 뿐만 아니라 board와 FK로 엮인 객체는 borad.모델이름_set으로 가져올 수 있다 -->
+    {% comment %} {% if board.reply_set %} {% for reply in board.reply_set.all%} {{ reply }} &nbsp;&nbsp;&nbsp;
+    <a href="#" onclick="javescript:showUpdateForm('{{reply.id}}')">수정</a>/
+    <a href="{% url 'board:delete_reply' id=board.id rid=reply.id %}">삭제</a>
     <br />
-    <!-- 수정, 삭제 -->
-    <!-- username끼리 비교하려면 아래처럼 -->
-    {% comment %} {% if board.author == user %} board.author는 user하고 비교한다 {% endcomment %}
-    {% if board.author.username == user.username %}
-      <a href="{% url 'board:update' board.id %}">수정</a>&nbsp;
-      <a href="{% url 'board:delete' board.id %}" onclick="return confirm('정말 삭제하시겠습니까?')">삭제</a>&nbsp;
-    {% endif %}
-    <hr>
-    <div id = 'relpyArea'>
-      <!-- 댓글 목록 표시할 곳-->
-      <div id = 'replyList'>
-        <!-- board 객체 뿐만 아니라 board와 FK로 엮인 객체는 borad.모델이름_set으로 가져올 수 있다 -->
-        {% comment %} {% if board.reply_set %}
-          {% for reply in board.reply_set.all %}
-            {{ reply }} &nbsp;&nbsp;&nbsp;
-            <a href = "#" onclick = "javescript:showUpdateForm('{{reply.id}}')">수정</a>/
-            <a href = "{% url 'board:delete_reply' id=board.id rid=reply.id %}">삭제</a>
-            <br>
-          {% endfor %}
-        {% else %}
-          <p>등록된 댓글이 없습니다.</p>
-        {% endif %} {% endcomment %}
-      </div>
-      <!-- 댓글 입력 폼-->
-      <div id = 'replyForm'> <!-- context에 update에 대한 값을 찾지 못했을 때 -->
-      {% if not update %}
-        <!-- <form action = "{% url 'board:write_reply' board.id %}" method = 'POST'> -->
-        <form action = "{% url 'board:write_reply' board.id %}" method = 'POST'>
-        {% csrf_token %}
-          <textarea name = 'replyText'></textarea>
-          <input type = 'submit' value = '댓글쓰기'>
-        </form>
-      {% else %} <!-- context에 update가 있을때-->
-        <form action = "{% url 'board:update_reply' board.id %}" method = 'POST'>
-        {% csrf_token %}
-          <input type = 'hidden' name = 'rid' value = {{ reply.id }}>
-          <textarea name = 'replyText'>{{ reply.reply_content }}</textarea>
-          <input type = 'submit' value = '댓글수정'>
-        </form>
-      {% endif %}
-      </div>
+    {% endfor %} {% else %}
+    <p>등록된 댓글이 없습니다.</p>
+    {% endif %} {% endcomment %}
+  </div>
+  <!-- 댓글 입력 폼2 : ajax와 통신하기 때문에 form삭제, submit을 button으로 -->
+  <div id="replyForm">
+    <div id="writeForm">
+      <!-- 글쓰기 폼-->
+      <textarea name="replyText" id="replyTextWrite"></textarea>
+      <input type="button" value="댓글쓰기" id="btnWrite" />
     </div>
-    <br />
-    <a href="{% url 'board:index' %}">목록으로</a>
-  {% endblock body %}
+    <div id="updateForm">
+      <input type="hidden" id="rid" value= "rid" />
+      <textarea name="replyText" id="replyTextUpdate"></textarea>
+      <input type="button" value="댓글수정" id="btnUpdate" />
+    </div>
+    <!-- 댓글 입력 폼 -->
+    {% comment %} {% if not update %}
+    <!-- context에 update에 대한 값을 찾지 못했을 때 -->
+    <form action="{% url 'board:write_reply' board.id %}" method="POST">
+      {% csrf_token %}
+      <textarea name="replyText"></textarea>
+      <input type="submit" value="댓글쓰기" />
+    </form>
+    {% else %}
+    <!-- context에 update가 있을때-->
+    <form action="{% url 'board:update_reply' board.id %}" method="POST">
+      {% csrf_token %}
+      <input type="hidden" name="rid" value="{{" reply.id }} />
+      <textarea name="replyText">{{ reply.reply_content }}</textarea>
+      <input type="submit" value="댓글수정" />
+    </form>
+    {% endif %} {% endcomment %}
+  </div>
+</div>
+<br />
+<a href="{% url 'board:index' %}">목록으로</a>
+{% endblock body %}

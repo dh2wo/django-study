@@ -16,7 +16,7 @@ a:hover {
 
 } */
 
-.current{
+.current {
   color: red;
   font-size: large;
   font-weight: bold;
@@ -27,7 +27,8 @@ table {
   border-collapse: collapse;
 }
 
-th, td {
+th,
+td {
   border: 1px solid black;
   padding: 5px;
 }
@@ -50,4 +51,7 @@ a:hover {
   color: red;
 }
 
-
+#replyCnt {
+  font-size: 0.5em;
+  color: blue;
+}

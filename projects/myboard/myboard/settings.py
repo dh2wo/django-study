@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     # 앱을 등록하지 않으면 기본 앱에서 템플릿을 찾으려고 한다
     # 앱이름.apps(.py)이름.관리 클래스 이름
     'board.apps.BoardConfig', # app/apps.py 클래스명과 같게
-    'common.apps.CommonConfig', # 화면 외 기능을 사용하기 위해 ex)models.py 등 사용 
+    'common.apps.CommonConfig', # 화면 외 기능을 사용하기 위해 ex)models.py 등 사용
 ]
 
 MIDDLEWARE = [
@@ -136,10 +136,14 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # 별도 경로에서 static 파일을 읽어오게 하려면
 STATICFILES_DIRS = [
     BASE_DIR / 'static', # myboard/static
-] 
+]
 
 # 로그인 성공했을 때 리다이렉트 할 주소
 LOGIN_REDIRECT_URL = '/'
 
 # 로그아웃 성공했을 때 리다이렉트 할 주소
 LOGOUT_REDIRECT_URL = '/'
+
+# 파일 업로드 관련
+MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = 'media/'

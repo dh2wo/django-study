@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>[상품관리 시스템]</title>
+</head>
+<body>
+  <h1>[상품관리 시스템]</h1>
+  <ul>
+    <li><a href = "{% url 'item:addItem' %}">상품등록</a></li>
+    <li><a href = "{% url 'item:listItem' %}">상품목록 조회</a></li>
+    <li><a href = "{% url 'item:orderItem' %}">주문정보 등록</a></li>
+    <li><a>주문정보 조회</a></li>
+  </ul>
+</body>
+</html>

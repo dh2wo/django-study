@@ -15,6 +15,9 @@
 
     <!-- jquery cdn방식으로 가져옴 -->
     <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+
+    <!-- 스크립트 -->
+    <script type="text/javascript" src="{% static 'script.js' %}"></script>
   </head>
   <body>
     <!-- 내가 집어넣고싶은 조각(fragment)을 include -->
@@ -22,5 +25,4 @@
     <!-- 다른 내용을 삽입할 자리 만들기 -->
     {% block body %}{% endblock body %}
   </body>
-
 </html>

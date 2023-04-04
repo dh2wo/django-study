@@ -20,7 +20,7 @@ def add_order(request):
             address = request.POST['adress'],
         )
         return HttpResponseRedirect('/order/')
-    
+
 # 주문 리스트
 def list_order(request):
     order_list = Order.objects.all()
@@ -35,19 +35,19 @@ def search_order(request):
     order_list = request.POST['search_order']
     print(order_list)
 
-    startwiht = request.POST['startwith']
-    print(startwiht)
+    startwith = request.POST['startwith']
+    print(startwith)
 
-    if startwiht == 'on':
+    if startwith == 'on':
         print('with')
-        order_list = Order.objects.filter(order_text__startswith = order_list) 
+        order_list = Order.objects.filter(order_text__startswith = order_list)
 
     check = request.POST['check'] # 제품으로 검색인지, 주소로 검색인지
     if check == 'text': # 제품으로 검색
-        order_list = Order.objects.filter(order_text__contains = order_list) 
+        order_list = Order.objects.filter(order_text__contains = order_list)
     else: # 주소로 검색
-        order_list = Order.objects.filter(address__contains = order_list) 
-    
+        order_list = Order.objects.filter(address__contains = order_list)
+
     context = {
         'order_list' : order_list
     }
@@ -78,7 +78,7 @@ def update_order(request, id):
         order.price = request.POST['price']
         order.address = request.POST['address']
         order.save()
-        
+
         return HttpResponseRedirect('/order/list_order/')
 
 # 주문 삭제
@@ -88,10 +88,10 @@ def delete_order(request, id):
     return HttpResponseRedirect('/order/list_order')
 
 
-    
 
-        
-    
+
+
+
 
 
 

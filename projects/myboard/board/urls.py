@@ -32,4 +32,9 @@ urlpatterns = [
     # 다운로드
     path('<int:id>/download/', views.download, name = 'download'),
 
+    # CBV 방식으로 호출할 주소
+    # as_view() : 클래스를 뷰의 기능으로서 사용하겠다
+    path('cbv/', views.BoardList.as_view()),
+    path('cbv/<int:id>/', views.BoardDetail.as_view()),
+
 ]

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>[영화 정보 수정]</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+    <script>
+      function delete_movie(id){
+        if(confirm('삭제된 내용은 복구할 수 없습니다. 계속하시겠습니까?')){
+          $.ajax({
+            url: '{% url 'review:delete_movie' id=movie.id %}',
+            type: 'POST',
+            headers: {'X-CSRFTOKEN':'{{csrf_token}}'},
+            data: { 'id' : id },
+            success: function() {
+              location.href = "/review/"
+            }
+          });
+        }
+        else{
+          alert('삭제가 취소되었습니다.')
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <h1>[영화 정보 수정]</h1>
+    <form action="{% url 'review:update_movie' id=movie.id %}" method="POST">
+      <table border="1">
+        {% csrf_token %}
+        <tr>
+          <th>
+            <select name="select_genre">
+              <option value="액션">액션</option>
+              <option value="코미디">코미디</option>
+              <option value="애니메이션 ">애니메이션</option>
+            </select>
+          </th>
+          <th><input type="text" value="{{movie.movie_name}}" name="movie_name"/></th>
+        </tr>
+        <tr>
+          <th colspan="2"><textarea rows="5" cols="40" name="movie_summary">{{movie.movie_summary}}</textarea></th>
+        </tr>
+        <tr>
+          <th colspan="2">
+            <input type="submit" value="수정하기" />
+            <input type="button" value="삭제하기" onclick="delete_movie('{{movie.id}}')"/>
+          </th>
+        </tr>
+      </table>
+    </form>
+  </body>
+</html>

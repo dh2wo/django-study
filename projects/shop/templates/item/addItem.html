@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>[상품등록]</title>
+  </head>
+  <script>
+    function validateForm() {
+      let item_count = document.getElementById("item_count").value;
+
+      if (isNaN(item_count)) {
+        alert("상품개수는 숫자만 입력 가능합니다.");
+        return false;
+      }
+      return true;
+    }
+  </script>
+  <body>
+    <h1>[상품등록]</h1>
+    <form action="{% url 'item:addItem' %}" method="POST" onsubmit="return validateForm()">
+      {% csrf_token %}
+      <table border="1">
+        <tr>
+          <th>상품이름</th>
+          <td><input type="text" name="item_name" id="item_name" /></td>
+        </tr>
+        <tr>
+          <th>상품개수</th>
+          <td><input type="text" name="item_count" id="item_count" /></td>
+        </tr>
+        <tr>
+          <th colspan="2">
+            <input type="submit" value="등록" />
+          </th>
+        </tr>
+      </table>
+    </form>
+  </body>
+</html>

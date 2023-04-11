@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>[영화 정보]</title>
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js" integrity="sha256-oP6HI9z1XaZNBrJURtCoUT5SUnxFr8s3BzRl+cbzUq8=" crossorigin="anonymous"></script>
+  <script>
+    function valiDation(){
+      let name = document.getElementById("reviewer_name").value;
+      let text = document.getElementById("review_text").value;
+
+      if (name.trim() == ""){
+        $('#reviewer_name').val('익명');
+      }
+
+      if (text.trim() == "" || text.trim().length < 10) {
+        alert("리뷰 내용의 너무 짧습니다.");
+        return false;
+      } else{
+        reply('{{movie.id}}')
+      }
+    }
+    function reply(id){
+      let reviewer_name = $('#reviewer_name').val();
+      let review_text = $('#review_text').val();
+      let score = $('#score').val();
+
+      $.ajax({
+        url: '{% url "review:reply" id=movie.id %}',
+        type: 'POST',
+        headers: {'X-CSRFTOKEN':'{{csrf_token}}'},
+        data: { 'id' : id , 'reviewer_name' : reviewer_name, 'review_text' :review_text, 'score' : score},
+        success: function() {
+          alert("새로고침")
+          location.reload();
+        }
+      });
+    }
+  </script>
+</head>
+<body>
+  <h1>[{{movie.movie_name}}]에 대한 정보입니다.</h1>
+  <h2>장르 : {{movie.genre}}</h2>
+  <p>영화 설명 : {{movie.movie_summary}}</p>
+  <a href = "{% url 'review:update_movie' id=movie.id %}">영화 정보 수정하기</a>
+
+  <h2>관객 평점 :{% for r in review %}{{r.score}}{% endfor %}</h2>
+
+  <h1>[{{movie.movie_name}}] 관객 리뷰</h1>
+  <table border="1">
+    <tr>
+      <th>이름</th>
+      <th>내용</th>
+      <th>평점</th>
+      <th>날짜</th>
+    </tr>
+    <div id = "review_list">
+    {% for r in review %}
+    <tr>
+      <td>{{r.reviewer_name}}</td>
+      <td>{{r.review_text}}</td>
+      <td>{{r.score}}</td>
+      <td>{{r.reg_date | date:'Y-m-d'}}</td>
+    {% endfor %}
+    </tr>
+    </div>
+  </table>
+  <form onsubmit = "return valiDation()" >
+  {% csrf_token %}
+    <input type="text" name="reviewer_name" placeholder="닉네임을 입력하세요" id="reviewer_name">
+    <input type="text" name="review_text" id="review_text">
+    <input type="number" name="score" value="0" min="0" max="10" id="score">
+    <input type="submit" value="등록하기" >
+  </form>
+</body>
+</html>

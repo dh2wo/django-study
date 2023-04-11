@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>[영화 리뷰 게시판]</title>
+  </head>
+  <body>
+    <h1>[영화 리뷰 게시판]</h1>
+    <p name = "sort" id ="sort">정렬 ▷
+      <a href="{% url 'review:recently'%}" name = "recently">최신 등록순</a> <a href="{% url 'review:index'%}" name = "comments">리뷰 많은순</a>
+    </p>
+    {% if movie %}
+    <table border="1">
+      <tr>
+        <th>번호</th>
+        <th>장르</th>
+        <th>제목</th>
+        <th>리뷰 수</th>
+      </tr>
+      {% for m in movie %}
+      <tr>
+        <td>{{ m.id }}</td>
+        <td>{{ m.genre }}</td>
+        <td><a href="{% url 'review:review_movie' id=m.id %}">{{ m.movie_name }}</a></td>
+        <td></td>
+      </tr>
+      {% endfor %}
+      {% else %}
+      <b>영화 정보가 없습니다.</b>
+      {% endif %}
+    </table>
+    <br />
+    <p>
+      내가 찾는 영화가 없다면?
+      <a href="{% url 'review:add_movie' %}">영화 등록하기</a>
+    </p>
+    <form action = "{% url 'review:index' %}" method = 'GET'>
+      장르 골라보기
+      <select name="select_genre">
+        <option value="액션">액션</option>
+        <option value="코미디">코미디</option>
+        <option value="애니메이션">애니메이션</option>
+      </select>
+      <input type="submit" value="골라보기" />
+    </form>
+  </body>
+</html>

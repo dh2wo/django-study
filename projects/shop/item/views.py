@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponseRedirect, JsonResponse
 
-from .models import item
+from .models import item, order
 
 # Create your views here.
 def index(request):
@@ -48,7 +48,7 @@ def updateItem(request, id):
 
 # 상품 삭제
 def deleteItem(request):
-  id = request.POST['id']
+  id = request.POST['id'] # ajax
 
   item.objects.get(id = id).delete()
 
@@ -69,6 +69,33 @@ def orderItem(request):
     list = item.objects.all()
 
     context = { 'list' : list }
+
     return render(request, 'item/orderItem.html', context)
   else:
-    pass
+    selected_item_id = request.POST['selected_item']
+    quantity = request.POST['item_count']
+
+    # 해당 id를 가진 상품 객체 가져오기
+    selected_item = item.objects.get(id=selected_item_id)
+
+    # 주문 생성
+    order.objects.create(
+      item=selected_item,
+      quantity=quantity
+    )
+
+    # 해당 상품의 수량 감소시키기
+    selected_item.item_count -= int(quantity)
+    selected_item.save()
+
+    return HttpResponseRedirect('/item/orderList/')
+
+def orderList(request):
+
+  context = {}
+
+  return render(request, 'item/orderList.html', context)
+
+
+
+

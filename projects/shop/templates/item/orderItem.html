@@ -14,17 +14,16 @@
         <tr>
           <th>상품이름</th>
           <td>
-            <select>
+            <select name="selected_item">
               {% for item in list %}
-              <option name={{item.id}}>{{item.item_name}}</option>
+              <option value="{{ item.id }}">{{item.item_name}} / {{item.item_count}}개</option>
               {% endfor %}
             </select>
-            {{list.item_count}}
           </td>
         </tr>
         <tr>
           <th>상품개수</th>
-          <td><input type="text" name="item_count" /></td>
+          <td><input type="number" name="item_count"  value="1"/></td>
         </tr>
         <tr>
           <th colspan="2">

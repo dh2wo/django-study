@@ -17,6 +17,6 @@
 
 ### 실행방법
 ```
-cd C:\django\projects\shop
-C:\django\venv\venv\Scripts\activate
+cd C:\django\projects\shop            # 프로젝트 경로
+C:\django\venv\venv\Scripts\activate  # avtivate
 ```
